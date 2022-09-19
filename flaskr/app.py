@@ -55,50 +55,37 @@ def home():
     return render_template('base.html', context=context)
 
 
-@app.route('/students/', methods=['POST', 'GET'])
-@app.route('/students/<cursor>/', methods=['POST', 'GET'])
-@app.route('/students/<cursor>/<int:student_id>', methods=['POST', 'GET'])
-def students_view(cursor=None, student_id=None):
-    context = {}
-    if cursor is not None:
-        context['form'] = cursor
-    if cursor == 'add':
-        context['form'] = 'add'
-        return students_add(context)
-    elif cursor == 'update':
-        context['form'] = 'update'
-        return students_update(context, student_id)
-    elif cursor == 'delete':
-        context['form'] = 'delete'
-        confirmed_del = False
-        if request.method == 'POST':
-            confirmed_del = True
-        return students_delete(context, student_id, confirmed_del)
+@app.route('/students/', methods=['GET'])
+@app.route('/students/search', methods=['GET'])
+def students_view():
+    context = {'form': 'search'}
+    args = request.args
+    filters = {'first_name': '',
+               'last_name': '',
+               'group_id': ''
+               }
+    if args:
+        filters['first_name'] = args.get('first_name')
+        filters['last_name'] = args.get('last_name')
+        filters['group_id'] = args.get('group_id')
+    for k in list(filters.keys()):
+        if filters[k] == '':
+            del filters[k]
+    query = db.session.query(Student)\
+        .filter_by(**filters)\
+        .order_by(Student.student_id)
+    results_list = [(r.student_id, r.first_name, r.last_name, r.group_id)
+                    for r in query.all()]
+    if results_list:
+        context['search_results'] = results_list
     else:
-        context['form'] = 'search'
-
-    if request.method == 'GET':
-        args = request.args
-        if len(args) == 0:
-            return render_template('students.html', context=context)
-        filters = {'first_name': args.get('first_name'),
-                   'last_name': args.get('last_name'),
-                   'group_id': args.get('group_id')
-                   }
-        for k in list(filters.keys()):
-            if filters[k] == '':
-                del filters[k]
-        query = db.session.query(Student).filter_by(**filters)
-        results_list = [(r.student_id, r.first_name, r.last_name, r.group_id)
-                        for r in query.all()]
-        if len(results_list) == 0:
-            context['search_results'] = 0
-        else:
-            context['search_results'] = results_list
+        context['search_results'] = 0
     return render_template('students.html', context=context)
 
 
-def students_add(context):
+@app.route('/students/add/', methods=['GET', 'POST'])
+def students_add():
+    context = {'form': 'add'}
     if request.method == 'POST':
         f_name = request.form.get('first_name')
         l_name = request.form.get('last_name')
@@ -112,7 +99,9 @@ def students_add(context):
     return render_template('students.html', context=context)
 
 
-def students_update(context, student_id):
+@app.route('/students/update/<int:student_id>', methods=['GET', 'POST'])
+def students_update(student_id):
+    context = {'form': 'update'}
     if request.method == 'POST':
         print(request.form.get('first_name'))
         student_upd = Student.query.get(student_id)
@@ -122,71 +111,60 @@ def students_update(context, student_id):
         db.session.commit()
         flash(f'Student info updated!')
         return redirect(url_for('students_view'))
-    stmt = select(Student).where(Student.student_id == student_id)
-    result = db.session.execute(stmt)
-    student = result.scalars().all()[0]
-    context['student'] = student
-    return render_template('students.html', context=context)
+    elif request.method == 'POST':
+        stmt = select(Student).where(Student.student_id == student_id)
+        result = db.session.execute(stmt)
+        student = result.scalars().all()[0]
+        context['student'] = student
+        return render_template('students.html', context=context)
 
 
-def students_delete(context, student_id, confirmed_del):
-    if confirmed_del:
+@app.route('/students/delete/<int:student_id>', methods=['GET', 'POST'])
+def students_delete(student_id):
+    context = {'form': 'delete'}
+    if request.method == 'POST':
         student_to_del = db.session.query(Student). \
             filter(Student.student_id == student_id).first()
         db.session.delete(student_to_del)
         db.session.commit()
         flash(f'Student deleted!')
         return redirect(url_for('students_view'))
-    else:
+    elif request.method == 'GET':
         stmt = select(Student).where(Student.student_id == student_id)
         result = db.session.execute(stmt)
         student = result.scalars().all()[0]
         context['student'] = student
-    return render_template('students.html', context=context)
+        return render_template('students.html', context=context)
 
 
-@app.route('/courses', methods=['GET', 'POST'])
-@app.route('/courses/<cursor>', methods=['GET', 'POST'])
-@app.route('/courses/<cursor>/<course_name>', methods=['GET', 'POST'])
-def courses_view(cursor=None, course_name=None):
-    context = {}
-    if cursor is not None:
-        context['form'] = cursor
-    if cursor == 'add':
-        context['form'] = 'add'
-        return courses_add(context)
-    elif cursor == 'update':
-        context['form'] = 'update'
-        return courses_update(context, course_name)
-    elif cursor == 'delete':
-        context['form'] = 'delete'
-        confirmed_del = False
-        if request.method == 'POST':
-            confirmed_del = True
-        return courses_delete(context, course_name, confirmed_del)
+@app.route('/courses', methods=['GET'])
+@app.route('/courses/search', methods=['GET'])
+def courses_view():
+    context = {'form': 'search'}
+    filters = {'course_name': '',
+               'description': ''
+               }
+    args = request.args
+    if args:
+        filters['course_name'] = args.get('course_name')
+        filters['description'] = args.get('description')
+    for k in list(filters.keys()):
+        if filters[k] == '':
+            del filters[k]
+    query = db.session.query(Course)\
+        .filter_by(**filters)\
+        .order_by(Course.course_name)
+    results_list = [(r.course_name, r.description) for r in query.all()]
+    if results_list:
+        context['search_results'] = results_list
     else:
-        context['form'] = 'search'
-
-    if request.method == 'GET':
-        args = request.args
-        if len(args) == 0:
-            return render_template('courses.html', context=context)
-        filters = {'course_name': args.get('course_name'),
-                   'description': args.get('description')
-                   }
-        for k in list(filters.keys()):
-            if filters[k] == '':
-                del filters[k]
-        query = db.session.query(Course).filter_by(**filters)
-        results_list = [(r.course_name, r.description) for r in query.all()]
-        if len(results_list) == 0:
-            context['search_results'] = 0
-        else:
-            context['search_results'] = results_list
+        context['search_results'] = 0
     return render_template('courses.html', context=context)
 
 
-def courses_add(context):
+@app.route('/courses/add', methods=['GET', 'POST'])
+def courses_add():
+    context = {'form': 'add'}
     if request.method == 'POST':
         course_name = request.form.get('course_name')
         description = request.form.get('description')
@@ -197,7 +175,9 @@ def courses_add(context):
     return render_template('courses.html', context=context)
 
 
-def courses_update(context, course_name):
+@app.route('/courses/update/<course_name>', methods=['GET', 'POST'])
+def courses_update(course_name):
+    context = {'form': 'update'}
     if request.method == 'POST':
         course_upd = Course.query.get(course_name)
         course_upd.course_name = request.form.get('course_name')
@@ -205,70 +185,57 @@ def courses_update(context, course_name):
         db.session.commit()
         flash(f'Course info updated!')
         return redirect(url_for('courses_view'))
-    stmt = select(Course).where(Course.course_name == course_name)
-    result = db.session.execute(stmt)
-    course = result.scalars().all()[0]
-    context['course'] = course
-    return render_template('courses.html', context=context)
+    elif request.method == 'GET':
+        stmt = select(Course).where(Course.course_name == course_name)
+        result = db.session.execute(stmt)
+        course = result.scalars().all()[0]
+        context['course'] = course
+        return render_template('courses.html', context=context)
 
 
-def courses_delete(context, course_name, confirmed_del):
-    if confirmed_del:
+@app.route('/courses/delete/<course_name>', methods=['GET', 'POST'])
+def courses_delete(course_name):
+    context = {'form': 'delete'}
+    if request.method == 'POST':
         course_to_del = db.session.query(Course). \
             filter(Course.course_name == course_name).first()
         db.session.delete(course_to_del)
         db.session.commit()
         flash(f'Course deleted!')
         return redirect(url_for('courses_view'))
-    else:
+    elif request.method == 'GET':
         stmt = select(Course).where(Course.course_name == course_name)
         result = db.session.execute(stmt)
         course = result.scalars().all()[0]
         context['course'] = course
-    return render_template('courses.html', context=context)
+        return render_template('courses.html', context=context)
 
 
-@app.route('/groups', methods=['GET', 'POST'])
-@app.route('/groups/<cursor>', methods=['GET', 'POST'])
-@app.route('/groups/<cursor>/<group_name>', methods=['GET', 'POST'])
-def groups_view(cursor=None, group_name=None):
-    context = {}
-    if cursor is not None:
-        context['form'] = cursor
-    if cursor == 'add':
-        context['form'] = 'add'
-        return groups_add(context)
-    elif cursor == 'update':
-        context['form'] = 'update'
-        return groups_update(context, group_name)
-    elif cursor == 'delete':
-        context['form'] = 'delete'
-        confirmed_del = False
-        if request.method == 'POST':
-            confirmed_del = True
-        return groups_delete(context, group_name, confirmed_del)
+@app.route('/groups', methods=['GET'])
+@app.route('/groups/search', methods=['GET'])
+def groups_view():
+    context = {'form': 'search'}
+    filters = {'group_name': ''}
+    args = request.args
+    if args:
+        filters['group_name'] = args.get('group_name')
+    for k in list(filters.keys()):
+        if filters[k] == '':
+            del filters[k]
+    query = db.session.query(Group)\
+        .filter_by(**filters)\
+        .order_by(Group.group_name)
+    results_list = [r.group_name for r in query.all()]
+    if results_list:
+        context['search_results'] = results_list
     else:
-        context['form'] = 'search'
-
-    if request.method == 'GET':
-        args = request.args
-        if len(args) == 0:
-            return render_template('groups.html', context=context)
-        filters = {'group_name': args.get('group_name'),
-                   }
-        for k in list(filters.keys()):
-            if filters[k] == '':
-                del filters[k]
-        query = db.session.query(Group).filter_by(**filters)
-        results_list = [(r.group_name) for r in query.all()]
-        if len(results_list) == 0:
-            context['search_results'] = 0
-        else:
-            context['search_results'] = results_list
+        context['search_results'] = 0
     return render_template('groups.html', context=context)
 
 
-def groups_add(context):
+@app.route('/groups/add/', methods=['GET', 'POST'])
+def groups_add():
+    context = {'form': 'add'}
     if request.method == 'POST':
         group_name = request.form.get('group_name')
         print(group_name)
@@ -279,34 +246,39 @@ def groups_add(context):
     return render_template('groups.html', context=context)
 
 
-def groups_update(context, group_name):
+@app.route('/groups/update/<group_name>', methods=['GET', 'POST'])
+def groups_update(group_name):
+    context = {'form': 'update'}
     if request.method == 'POST':
         group_upd = Group.query.get(group_name)
         group_upd.group_name = request.form.get('group_name')
         db.session.commit()
         flash(f'Group info updated!')
         return redirect(url_for('groups_view'))
-    stmt = select(Group).where(Group.group_name == group_name)
-    result = db.session.execute(stmt)
-    group = result.scalars().all()[0]
-    context['group'] = group
-    return render_template('groups.html', context=context)
+    elif request.method == 'GET':
+        stmt = select(Group).where(Group.group_name == group_name)
+        result = db.session.execute(stmt)
+        group = result.scalars().all()[0]
+        context['group'] = group
+        return render_template('groups.html', context=context)
 
 
-def groups_delete(context, group_name, confirmed_del):
-    if confirmed_del:
+@app.route('/groups/delete/<group_name>', methods=['GET', 'POST'])
+def groups_delete(group_name):
+    context = {'form': 'delete'}
+    if request.method == 'POST':
         group_to_del = db.session.query(Group). \
             filter(Group.group_name == group_name).first()
         db.session.delete(group_to_del)
         db.session.commit()
         flash(f'Group deleted!')
         return redirect(url_for('groups_view'))
-    else:
+    elif request.method == 'GET':
         stmt = select(Group).where(Group.group_name == group_name)
         result = db.session.execute(stmt)
         group = result.scalars().all()[0]
         context['group'] = group
-    return render_template('groups.html', context=context)
+        return render_template('groups.html', context=context)
 
 
 if __name__ == '__main__':
