@@ -1,1 +1,1 @@
-# Flask-PostgreSQL
+# Task 10 - SQL

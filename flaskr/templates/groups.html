@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>
+<a href="/groups/add"><button type="submit">Add new group</button></a>
+{% if context['form']=='search' %}
+<h1> Group search </h1>
+<form action="/groups/search" method="get">
+  <label for="group_name">Group name:</label>
+  <input type="text" id="group_name" name="group_name"><br><br>
+  <input type="submit" value="Search">
+</form>
+
+{% if context['search_results'] == 0 %}
+<h1>Not found</h1>
+
+{% elif context['search_results'] %}
+<table style="width:50%" class="center">
+    <tr>
+        <th style="width:80%" class="text-center">Group name</th>
+        <th style="width:10%">Update</th>
+        <th style="width:10%">Delete</th>
+    </tr>
+    {% for group in context['search_results'] %}
+        <tr>
+            <td>{{ group }}</td>
+            <td> <a href="/groups/update/{{group}}">Update</a></td>
+            <td><a href="/groups/delete/{{group}}">Delete</a></td>
+        </tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endif %}
+
+{% if context['form']=='add' %}
+<h1> Add group </h1>
+<form action="/groups" method="post">
+  <label for="group_name">Group name:</label>
+  <input type="text" id="group_name" name="group_name" required><br><br>
+  <button type="submit" formaction="/groups/add">Add group</button>
+</form>
+{% endif %}
+
+{% if context['form']=='update' %}
+<h1> Update group </h1>
+<form method="post">
+  <label for="group_name">Group name:</label>
+  <input type="text" id="group_name" name="group_name"
+         value="{{context['group'].group_name}}" required ><br><br>
+  <button type="submit" name="Update_info" value="Update">
+      Update group</button>
+</form>
+{% endif %}
+
+{% if context['form']=='delete' %}
+<form method="post"
+      onSubmit="return confirm('Are you sure you wish to delete?');">
+    <h3 align="center"> Delete group {{context['group'].group_name}}?
+    <input type="submit" name="Delete_confirmation" value="Delete">
+</form>
+{% endif %}
+{% endblock %}

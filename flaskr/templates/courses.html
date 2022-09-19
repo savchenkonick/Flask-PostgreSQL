@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>
+<a href="/courses/add"><button type="submit">Add new course</button></a>
+{% if context['form']=='search' %}
+<h1> Course search </h1>
+<form action="/courses/search" method="get">
+  <label for="course_name">Course name:</label>
+  <input type="text" id="course_name" name="course_name"><br><br>
+  <label for="description">Descriprion:</label>
+  <input type="text" id="description" name="description"><br><br>
+  <input type="submit" value="Search">
+</form>
+
+{% if context['search_results'] == 0 %}
+<h1>Not found</h1>
+
+{% elif context['search_results'] %}
+<table style="width:50%" class="center">
+    <tr>
+        <th style="width:20%" class="text-center">Course name</th>
+        <th style="width:60%">Descriprion</th>
+        <th style="width:10%">Update</th>
+        <th style="width:10%">Delete</th>
+    </tr>
+    {% for course in context['search_results'] %}
+        <tr>
+            <td>{{ course[0] }}</td>
+            <td>{{ course[1] }}</td>
+            <td> <a href="/courses/update/{{course[0]}}">Update</a></td>
+            <td><a href="/courses/delete/{{course[0]}}">Delete</a></td>
+        </tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endif %}
+
+{% if context['form']=='add' %}
+<h1> Add course </h1>
+<form action="/courses" method="post">
+  <label for="course_name">Course name:</label>
+  <input type="text" id="course_name" name="course_name" required><br><br>
+  <label for="description">Description:</label>
+  <input type="text" id="description" name="description" required><br><br>
+  <button type="submit" formaction="/courses/add">Add Course</button>
+</form>
+{% endif %}
+
+{% if context['form']=='update' %}
+<h1> Update course </h1>
+<form method="post">
+  <label for="course_name">Course name:</label>
+  <input type="text" id="course_name" name="course_name"
+         value="{{context['course'].course_name}}" required ><br><br>
+  <label for="description">Descriprion:</label>
+  <input type="text" id="description" name="description"
+         value="{{context['course'].description}}" required><br><br>
+  <button type="submit" name="Update_info" value="Update">
+      Update course</button>
+</form>
+{% endif %}
+
+{% if context['form']=='delete' %}
+<form
+    method="post"
+    onSubmit="return confirm('Are you sure you wish to delete?');">
+    <h3 align="center"> Delete course {{context['course'].course_name}}?
+    <input type="submit" name="Delete_confirmation" value="Delete">
+</form>
+{% endif %}
+{% endblock %}
