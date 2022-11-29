@@ -12,7 +12,7 @@ Call this api passing a version of api and "students" or "courses" table.
         where "med" is course_name
 
     To extract OpenAPI-Specification go to:
-    apidocs/
+    swagger/
 
     Classes:
         Students:
