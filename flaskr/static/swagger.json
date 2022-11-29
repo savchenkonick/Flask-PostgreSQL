@@ -1,0 +1,520 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Flask school DB REST API",
+    "description": "REST API for Web App that provides access to school PostgreSQL DB. This API intended to give access via GET, POST, PUT, DELETE JSON requests using sqlalchemy and flask rest framework.\n\n Call this api passing a version of api and 'students' or 'courses' table.\n\n Example:\n\n /api/v1/students/ \n\n /api/v1/students/420/ \n\n where 420 is student_id\n\n or\n\n /api/v1/courses/ \n\n /api/v1/courses/med/ \n\n where 'med' is course_name \n\n To extract OpenAPI-Specification go to:\n\n apidocs/\n\n Classes:\n\n Students:\n\n Handles GET, POST, PUT, DELETE request for students table\n\n Courses:\n\n Handles GET, POST, PUT, DELETE request for courses table\n\n ",
+    "contact": {
+      "email": "example@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1/students/"
+    },
+    {
+      "url": "/api/v1/courses/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Request",
+      "description": "Example API for srudent requesting"
+    }
+  ],
+  "paths": {
+    "/students/": {
+      "get": {
+        "tags": [
+          "Students requests"
+        ],
+        "summary": "Returns all students in db as list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Students requests"
+        ],
+        "summary": "Create new students",
+        "requestBody": {
+          "description": "Create new students with array of dictionaries",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentsPostBody"
+              },
+              "examples": {
+                "Dictionary example": {
+                  "summary": "Example with dictionary",
+                  "value": {
+                    "first_name": "Mary",
+                    "last_name": "Smith",
+                    "group_id": "ab_cd"
+                  }
+                },
+                "List of dictionaries example": {
+                  "summary": "Example with list of dicts"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Students added successfully"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          }
+        }
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "tags": [
+          "Student requests"
+        ],
+        "summary": "Get student request with given ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Student request by id",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Student with ID not found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Student requests"
+        ],
+        "summary": "Edit a student by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Student request id",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Student Object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentPut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "student_id not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Student requests"
+        ],
+        "summary": "Create new student",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Create Student by id",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Create new student",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentsPostBody"
+              },
+              "examples": {
+                "Dictionary example": {
+                  "summary": "Example with dictionary",
+                  "value": {
+                    "first_name": "Mary",
+                    "last_name": "Smith",
+                    "group_id": "ab_cd"
+                  }
+                },
+                "List of dictionaries example": {
+                  "summary": "Example with list of dicts"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Students added successfully"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Student requests"
+        ],
+        "summary": "Delete student by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Student request ID",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Student with ID not found"
+          }
+        }
+      }
+    },
+    "/courses/": {
+      "get": {
+        "tags": [
+          "Courses requests"
+        ],
+        "summary": "Returns all courses in db as list",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Courses requests"
+        ],
+        "summary": "Create new courses",
+        "requestBody": {
+          "description": "Create new courses with array of dictionaries",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoursesPostBody"
+              },
+              "examples": {
+                "Dictionary example": {
+                  "summary": "Example with dictionary",
+                  "value": {
+                    "course_name": "Med",
+                    "description": "Medicine"
+                  }
+                },
+                "List of dictionaries example": {
+                  "summary": "Example with list of dicts"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Courses added successfully"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          }
+        }
+      }
+    },
+    "/courses/{course_name}": {
+      "get": {
+        "tags": [
+          "Course requests"
+        ],
+        "summary": "Get course info with given ID",
+        "parameters": [
+          {
+            "name": "course_name",
+            "in": "path",
+            "description": "Course info by course_name",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Course with course_name not found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Course requests"
+        ],
+        "summary": "Edit a course by course_name",
+        "parameters": [
+          {
+            "name": "course_name",
+            "in": "path",
+            "description": "Edit course by course_name",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/course_name"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Course Object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoursePut"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "course_name not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Course requests"
+        ],
+        "summary": "Create new courses",
+        "parameters": [
+          {
+            "name": "course_name",
+            "in": "path",
+            "description": "ID of the course",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/course_name"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Create new courses with array of dictionaries",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoursePostBody"
+              },
+              "examples": {
+                "Dictionary example": {
+                  "summary": "Example with dictionary",
+                  "value": {
+                    "description": "Medicine"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Course added successfully"
+          },
+          "400": {
+            "description": "Course is already exists"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Course requests"
+        ],
+        "summary": "Delete Course by course_name",
+        "parameters": [
+          {
+            "name": "course_name",
+            "in": "path",
+            "description": "Delete Course by course_name",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "$ref": "#/components/schemas/course_name"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Student with ID not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "id": {
+        "properties": {
+          "uuid": {
+            "type": "integer"
+          }
+        }
+      },
+      "StudentsPostBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/StudentsPostBody_inner"
+        }
+      },
+      "StudentPut": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "last_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "group_id": {
+            "type": "string",
+            "format": "string"
+          }
+        }
+      },
+      "course_name": {
+        "properties": {
+          "uuid": {
+            "type": "string"
+          }
+        }
+      },
+      "CoursesPostBody": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CoursesPostBody_inner"
+        }
+      },
+      "CoursePostBody": {
+        "type": "object",
+        "properties": {
+          "course_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "description": {
+            "type": "string",
+            "format": "string"
+          }
+        }
+      },
+      "CoursePut": {
+        "type": "object",
+        "properties": {
+          "course_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "description": {
+            "type": "string",
+            "format": "string"
+          }
+        }
+      },
+      "StudentsPostBody_inner": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "last_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "group_id": {
+            "type": "string",
+            "format": "string"
+          }
+        }
+      },
+      "CoursesPostBody_inner": {
+        "type": "object",
+        "properties": {
+          "course_name": {
+            "type": "string",
+            "format": "string"
+          },
+          "description": {
+            "type": "string",
+            "format": "string"
+          }
+        }
+      }
+    }
+  }
+}

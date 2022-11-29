@@ -3,22 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, select, Column, Integer, Identity, String
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
-from flask_swagger_ui import get_swaggerui_blueprint
 
 
 app = Flask(__name__)
-
-SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.json'
-SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "Flask-PostgreSQL web APP"
-    }
-)
-app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
-
 engine = create_engine("postgresql://postgres:postgres@localhost/school")
 if not database_exists(engine.url):
     create_database(engine.url)
@@ -45,12 +32,11 @@ class Student(db.Model):
     first_name = Column(String(40), nullable=False)
     last_name = Column(String(40), nullable=False)
 
-    def __init__(self, group_id, first_name, last_name, student_id=None):
+    def __init__(self, group_id, first_name, last_name):
         self.group_id = group_id
         self.first_name = first_name
         self.last_name = last_name
-        if student_id:
-            self.student_id = student_id
+
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -117,7 +103,7 @@ def students_add():
 def students_update(student_id):
     context = {'form': 'update'}
     if request.method == 'POST':
-        # print(request.form.get('first_name'))
+        print(request.form.get('first_name'))
         student_upd = Student.query.get(student_id)
         student_upd.first_name = request.form.get('first_name')
         student_upd.last_name = request.form.get('last_name')
@@ -125,7 +111,7 @@ def students_update(student_id):
         db.session.commit()
         flash(f'Student info updated!')
         return redirect(url_for('students_view'))
-    elif request.method == 'GET':
+    elif request.method == 'POST':
         stmt = select(Student).where(Student.student_id == student_id)
         result = db.session.execute(stmt)
         student = result.scalars().all()[0]
